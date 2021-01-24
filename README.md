@@ -1,0 +1,1 @@
+# Stack-Overflow-Javascript-Code-Snippet-Linter
