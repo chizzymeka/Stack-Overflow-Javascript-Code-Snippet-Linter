@@ -3,10 +3,10 @@ const fs = require('fs');
 const lineByLine = require('n-readlines');
 const prompt = require('prompt-sync')({sigint: true});
 
-// Example Input: E:\snippets\test_reports\testCandidateJavascriptFiles.log
+// Example Input: E:\snippets\test\testCandidateJavascriptFiles.log
 const logFileAbsolutePath = prompt("Log File Absolute Path: ");
 
-// Example Input: E:\snippets\test_reports\test_javascript_snippets
+// Example Input: E:\snippets\test\test_javascript_snippets\**\
 const codeSnippetsAbsolutePath = prompt("Code Snippets Absolute Path: ");
 
 async function buildPathsToCandidateCodeSnippets() {
