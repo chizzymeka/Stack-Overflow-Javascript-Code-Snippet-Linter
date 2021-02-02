@@ -3,48 +3,86 @@ const fs = require('fs');
 const lineByLine = require('n-readlines');
 const prompt = require('prompt-sync')({sigint: true});
 
-// Example Input: E:\snippets\test\testCandidateJavascriptFiles.log
+/*
+    Example Input:
+    Test: E:\snippets\test\testCandidateJavascriptFiles.log
+    Main Work: E:\snippets\javascript\javascript\snips_sym_kw_6lines_id
+ */
 const logFileAbsolutePath = prompt("Log File Absolute Path: ");
 
-// Example Input: E:\snippets\test\test_javascript_snippets\**\
+/*
+    Example Input:
+    Test: E:\snippets\test\test_javascript_snippets\
+    Main Work: E:\snippets\javascript\javascript\SnippetsOutput-0\Lot-1
+ */
 const codeSnippetsAbsolutePath = prompt("Code Snippets Absolute Path: ");
 
-async function buildPathsToCandidateCodeSnippets() {
+let candidateCodeSnippetFilenames = [];
 
-    let candidateCodeSnippetPaths = [];
+try {
+    const liner = new lineByLine(logFileAbsolutePath);
+    let line;
 
-    try {
-        const liner = new lineByLine(logFileAbsolutePath);
-        let line;
-
-        while (line = liner.next()) {
-            candidateCodeSnippetPaths.push(codeSnippetsAbsolutePath + "\\" + line.toString().trim() + ".js");
-        }
-    } catch (error) {
-        console.log("Error: " + error)
+    while (line = liner.next()) {
+        candidateCodeSnippetFilenames.push(line.toString().trim() + ".js");
     }
-    return candidateCodeSnippetPaths
+} catch (error) {
+    console.log("Error: " + error)
 }
 
-(async function lintCandidateCodeSnippets() {
+const eslint = new ESLint(); // Create an ESLint instance.
+let counter = 0;
+const directoryPathPrefix = "E:/snippets/javascript/javascript/reports/";
+let filenameAndExtension = [];
+let filenameWithoutExtension = null;
 
-    let patterns = await buildPathsToCandidateCodeSnippets();
+fs.opendir(codeSnippetsAbsolutePath, (err, dir) => {
 
-    console.log("Step 1 of 4. Creating an ESLint instance.")
-    const eslint = new ESLint();
+    if (err) {
+        console.error(err)
+        return
+    }
 
-    console.log("Step 2 of 4. Linting candidate code snippets.")
-    const results = await eslint.lintFiles(patterns);
+    const readNext = (dir) => {
 
-    console.log("Step 3 of 4. Formatting the results.")
-    const formatter = await eslint.loadFormatter("json");
-    const resultText = await formatter.format(results);
+        let containingFolder = dir.path.split("SnippetsOutput-0\\")[1];
 
-    console.log("Step 4 of 4. Outputting the result to file.")
-    const myCustomConsole = new console.Console(fs.createWriteStream('E:/snippets/test/reports/report.json'));
-    myCustomConsole.log(resultText);
+        dir.read(async (err, file) => {
+            if (err) {
+                // log and return error
+                console.error(err)
+                return
+            }
 
-})().catch((error) => {
-    process.exitCode = 1;
-    console.error(error);
-});
+            if (file === null) {
+                console.log("Job Completed!");
+                return
+            }
+
+            if (candidateCodeSnippetFilenames.includes(file.name)) {
+
+                process.stdout.write("Now processing number " + ++counter + "\r");
+
+                // Lint file.
+                const result = await eslint.lintFiles([dir.path + "\\" + file.name]);
+
+                // Format the result.
+                const formatter = await eslint.loadFormatter("json");
+                let resultText = formatter.format(result);
+
+                // Create directory if it does not exist.
+                let fullDirectoryPath = directoryPathPrefix + containingFolder;
+                if (!fs.existsSync(fullDirectoryPath)) {
+                    fs.mkdirSync(fullDirectoryPath);
+                }
+
+                // Output to file.
+                filenameAndExtension = file.name.split(".");
+                filenameWithoutExtension = filenameAndExtension[0]
+                fs.appendFileSync(fullDirectoryPath + "/" + filenameWithoutExtension + ".json", resultText);
+            }
+            readNext(dir)
+        })
+    }
+    readNext(dir)
+})
