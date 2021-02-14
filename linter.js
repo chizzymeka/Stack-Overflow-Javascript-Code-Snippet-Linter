@@ -6,6 +6,7 @@ const prompt = require('prompt-sync')({sigint: true});
 /*
     Example Input:
     Test: E:\snippets\test\testCandidateJavascriptFiles.log
+    Main Work: C:\Users\chizz\Desktop\snippets\javascript\snips_sym_kw_6lines_id
     Main Work: E:\snippets\javascript\javascript\snips_sym_kw_6lines_id
  */
 const logFileAbsolutePath = prompt("Log File Absolute Path: ");
@@ -32,7 +33,7 @@ try {
 
 const eslint = new ESLint(); // Create an ESLint instance.
 let counter = 0;
-const directoryPathPrefix = "E:/snippets/javascript/javascript/reports/";
+const jsonReportDirectoryPath = "E:/snippets/javascript/javascript/reports";
 let filenameAndExtension = [];
 let filenameWithoutExtension = null;
 
@@ -44,8 +45,6 @@ fs.opendir(codeSnippetsAbsolutePath, (err, dir) => {
     }
 
     const readNext = (dir) => {
-
-        let containingFolder = dir.path.split("SnippetsOutput-0\\")[1];
 
         dir.read(async (err, file) => {
             if (err) {
@@ -61,7 +60,7 @@ fs.opendir(codeSnippetsAbsolutePath, (err, dir) => {
 
             if (candidateCodeSnippetFilenames.includes(file.name)) {
 
-                process.stdout.write("Now processing number " + ++counter + "\r");
+                process.stdout.write("Now processing number: " + ++counter + "\r");
 
                 // Lint file.
                 const result = await eslint.lintFiles([dir.path + "\\" + file.name]);
@@ -70,16 +69,19 @@ fs.opendir(codeSnippetsAbsolutePath, (err, dir) => {
                 const formatter = await eslint.loadFormatter("json");
                 let resultText = formatter.format(result);
 
-                // Create directory if it does not exist.
-                let fullDirectoryPath = directoryPathPrefix + containingFolder;
-                if (!fs.existsSync(fullDirectoryPath)) {
-                    fs.mkdirSync(fullDirectoryPath);
-                }
-
                 // Output to file.
                 filenameAndExtension = file.name.split(".");
                 filenameWithoutExtension = filenameAndExtension[0]
-                fs.appendFileSync(fullDirectoryPath + "/" + filenameWithoutExtension + ".json", resultText);
+
+                let reportPath =  jsonReportDirectoryPath + "/" + filenameWithoutExtension + ".json";
+
+                try {
+                    if (!fs.existsSync(reportPath)) {
+                        fs.appendFileSync(reportPath, resultText);
+                    }
+                } catch (err) {
+                    console.error(err)
+                }
             }
             readNext(dir)
         })
