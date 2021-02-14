@@ -1,25 +1,23 @@
 {
-  "name": "Linter",
+  "name": "linter",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "linter.js",
   "scripts": {
-    "test": "echo \\\"Error: no test_reports specified\\\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "n-readlines": "^1.0.1",
-    "prompt-sync": "^4.2.0",
-    "winston": "^3.3.3"
-  },
   "devDependencies": {
-    "eslint": "^7.18.0",
+    "eslint": "^7.19.0",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "line-reader": "^0.4.0"
+    "eslint-plugin-promise": "^4.2.1"
+  },
+  "dependencies": {
+    "glob": "^7.1.6",
+    "n-readlines": "^1.0.1",
+    "prompt-sync": "^4.2.0"
   }
 }
